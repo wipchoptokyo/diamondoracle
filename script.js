@@ -11,7 +11,12 @@ window.onload = () => {
   image.addEventListener('click', () => {
     image.style.display = 'none';
     video.style.display = 'block';
-    video.play();
+    video.play().then(() => {
+  console.log("✅ 動画再生開始");
+}).catch((e) => {
+  console.error("❌ 動画再生失敗", e);
+});
+
 
     // 字幕表示とカード召喚
     setTimeout(() => {
