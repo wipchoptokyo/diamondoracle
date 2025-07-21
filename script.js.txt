@@ -1,0 +1,30 @@
+window.onload = () => {
+  const image = document.getElementById('oracleimage');
+  const video = document.getElementById('oracleritual');
+  const subtitle = document.getElementById('subtitle');
+  const cards = [
+    document.getElementById('card1'),
+    document.getElementById('card2'),
+    document.getElementById('card3')
+  ];
+
+  image.addEventListener('click', () => {
+    image.style.display = 'none';
+    video.style.display = 'block';
+    video.play();
+
+    // 字幕表示とカード召喚
+    setTimeout(() => {
+      subtitle.style.opacity = 1;
+    }, 2000);
+
+    setTimeout(() => {
+      cards.forEach((card, index) => {
+        setTimeout(() => {
+          card.style.opacity = 1;
+          card.style.transform = 'translateY(0)';
+        }, index * 800);
+      });
+    }, 3500);
+  });
+};
