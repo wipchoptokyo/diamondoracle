@@ -1,16 +1,3 @@
-console.log("✅ JS読み込まれた");
-
-image.addEventListener('click', () => {
-  console.log("✅ 画像クリックされた");
-
-  video.style.display = 'block';
-  video.play().then(() => {
-    console.log("✅ 動画再生開始");
-  }).catch((e) => {
-    console.error("❌ 動画再生失敗", e);
-  });
-});
-
 window.onload = () => {
   const image = document.getElementById('oracleimage');
   const video = document.getElementById('oracleritual');
