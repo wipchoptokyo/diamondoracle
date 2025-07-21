@@ -1,3 +1,4 @@
+console.log("JS読み込まれた");
 window.onload = () => {
   const image = document.getElementById('oracleimage');
   const video = document.getElementById('oracleritual');
@@ -9,6 +10,7 @@ window.onload = () => {
   ];
 
   image.addEventListener('click', () => {
+console.log("画像クリックされた");
     image.style.display = 'none';
     video.style.display = 'block';
     video.play();
