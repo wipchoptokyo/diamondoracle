@@ -31,11 +31,11 @@
 }
 
 .dark-whisper {
-  color: #ff3333;
+  color: #ff3333 !important;
   text-shadow: 0 0 4px red, 0 0 10px black;
   font-style: italic;
   letter-spacing: 1px;
-  animation: glitch 0.3s infinite;
+  animation: glitch 0.3s infinite !important;
 }
 
 @keyframes glitch {
