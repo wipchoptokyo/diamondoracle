@@ -30,10 +30,6 @@ function showNextWhisper() {
 
 window.onload = function() {
   showNextWhisper();
-  // 他の初期処理がある場合、ここに統合
-};
-
-window.onload = () => {
   const image = document.getElementById('oracleimage');
   const video = document.getElementById('oracleritual');
   const subtitle = document.getElementById('subtitle');
