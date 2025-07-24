@@ -7,6 +7,14 @@ const whispers = [
 
 let whisperIndex = 0;
 
+function playWhisperSound() {
+  const whisperAudio = document.getElementById('whisperSound');
+  if (whisperAudio) {
+    whisperAudio.currentTime = 0;
+    whisperAudio.play();
+  }
+}
+
 function showNextWhisper() {
   if (whisperIndex >= whispers.length) {
     document.getElementById('veil').style.opacity = 0;
@@ -21,6 +29,7 @@ function showNextWhisper() {
   whisper.textContent = whispers[whisperIndex++];
   whisper.style.opacity = 1;
   whisper.style.display = 'block';
+  playWhisperSound(); // 音を鳴らす
 
   setTimeout(() => {
     whisper.style.opacity = 0;
@@ -28,8 +37,9 @@ function showNextWhisper() {
   }, 3000); // 表示時間
 }
 
-window.onload = function() {
+window.onload = function () {
   showNextWhisper();
+
   const image = document.getElementById('oracleimage');
   const video = document.getElementById('oracleritual');
   const subtitle = document.getElementById('subtitle');
@@ -39,25 +49,18 @@ window.onload = function() {
     document.getElementById('card3')
   ];
 
-document.getElementById('noiseLoop').volume = 0.1;
-document.getElementById('noiseLoop').play();
+  // ノイズ再生
+  const noise = document.getElementById('noiseLoop');
+  if (noise) {
+    noise.volume = 0.1;
+    noise.play().catch(e => console.warn("ノイズ再生失敗:", e));
+  }
 
-function playWhisperSound() {
-  const whisper = document.getElementById('whisperSound');
-  whisper.currentTime = 0;
-  whisper.play();
-  whisper.textContent = whispers[whisperIndex++];
-whisper.style.opacity = 1;
-whisper.style.display = 'block';
-playWhisperSound();
-}
-  
   image.addEventListener('click', () => {
     image.style.display = 'none';
     video.style.display = 'block';
     video.play();
 
-    // 字幕表示とカード召喚
     setTimeout(() => {
       subtitle.style.opacity = 1;
     }, 2000);
