@@ -46,6 +46,10 @@ function playWhisperSound() {
   const whisper = document.getElementById('whisperSound');
   whisper.currentTime = 0;
   whisper.play();
+  whisper.textContent = whispers[whisperIndex++];
+whisper.style.opacity = 1;
+whisper.style.display = 'block';
+playWhisperSound();
 }
   
   image.addEventListener('click', () => {
