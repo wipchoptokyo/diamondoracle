@@ -39,6 +39,15 @@ window.onload = function() {
     document.getElementById('card3')
   ];
 
+document.getElementById('noiseLoop').volume = 0.1;
+document.getElementById('noiseLoop').play();
+
+function playWhisperSound() {
+  const whisper = document.getElementById('whisperSound');
+  whisper.currentTime = 0;
+  whisper.play();
+}
+  
   image.addEventListener('click', () => {
     image.style.display = 'none';
     video.style.display = 'block';
