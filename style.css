@@ -30,10 +30,6 @@
   50% { filter: blur(2px); transform: translate(-50%, -52%) scale(1.01); opacity: 1; }
 }
 
-#whisper {
-  animation: whisper-flicker 3s ease-in-out infinite;
-}
-
 .dark-whisper {
   color: #ff3333;
   text-shadow: 0 0 4px red, 0 0 10px black;
@@ -51,10 +47,23 @@
   100% { transform: translate(-50%, -50%) skew(0deg); }
 }
 
+#whisper {
+  /* 通常モードでは flicker アニメ */
+  animation: whisper-flicker 3s ease-in-out infinite;
+}
+
+.dark-whisper {
+  animation: glitch 0.3s infinite !important; /* 上書きを強制 */
+}
+
 body {
   margin: 0;
   background: black;
   font-family: 'Noto Sans JP', sans-serif;
+}
+
+.flicker-whisper {
+  animation: whisper-flicker 3s ease-in-out infinite;
 }
 
 #background-container {
