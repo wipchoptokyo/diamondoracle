@@ -34,6 +34,23 @@
   animation: whisper-flicker 3s ease-in-out infinite;
 }
 
+.dark-whisper {
+  color: #ff3333;
+  text-shadow: 0 0 4px red, 0 0 10px black;
+  font-style: italic;
+  letter-spacing: 1px;
+  animation: glitch 0.3s infinite;
+}
+
+@keyframes glitch {
+  0% { transform: translate(-50%, -50%) skew(0.3deg); }
+  20% { transform: translate(-49%, -51%) skew(-0.3deg); }
+  40% { transform: translate(-51%, -50%) skew(0.2deg); }
+  60% { transform: translate(-50%, -49%) skew(-0.2deg); }
+  80% { transform: translate(-50%, -51%) skew(0.3deg); }
+  100% { transform: translate(-50%, -50%) skew(0deg); }
+}
+
 body {
   margin: 0;
   background: black;
