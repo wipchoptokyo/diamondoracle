@@ -33,6 +33,16 @@ function showNextWhisper() {
   }
 
   const whisper = document.getElementById('whisper');
+  
+  // Dark Oracleのときにクラスを付ける
+if (isCorrupted) {
+  whisper.classList.add('dark-whisper');
+  whisper.classList.remove('flicker-whisper');
+} else {
+  whisper.classList.add('flicker-whisper');
+  whisper.classList.remove('dark-whisper');
+}
+
   whisper.textContent = whispers[whisperIndex++];
   whisper.style.opacity = 1;
   whisper.style.display = 'block';
