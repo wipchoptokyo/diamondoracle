@@ -1,22 +1,70 @@
-<!-- 羽夢の影：闇とささやき -->
-<div id="veil"></div>
-<div id="whisper" style="display: none;"></div>
-
-<audio id="whisperSound" src="audio/whisper01.mp3"></audio>
-<audio id="noiseLoop" src="audio/noise.mp3" loop></audio>
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>占いサイト</title>
+  <title>占いサイト — Oracle Archetypes統合版</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ===== Oracle UI（衝突回避のため #oracle-ui 配下に限定） ===== */
+    #oracle-ui{--bg:#0b0d12; --panel:#121521; --ink:#e9ecf1; --muted:#aab3c2; --chip:#1b1f2e;}
+    #oracle-ui{color:var(--ink)}
+    #oracle-ui .wrap{max-width:1200px; margin:40px auto 80px; padding:0 16px}
+    #oracle-ui header{position:sticky; top:0; z-index:20; backdrop-filter:saturate(1.1) blur(8px); background:linear-gradient(180deg,rgba(11,13,18,.9),rgba(11,13,18,.4)); border-bottom:1px solid rgba(255,255,255,.06)}
+    #oracle-ui header .bar{max-width:1200px; margin:0 auto; padding:12px 16px; display:flex; gap:12px; align-items:center}
+    #oracle-ui .logo{font-weight:800; letter-spacing:.4px}
+    #oracle-ui .pill{font-size:12px; padding:4px 8px; border-radius:999px; background:var(--chip); color:var(--muted); border:1px solid rgba(255,255,255,.06)}
+    #oracle-ui .controls{display:flex; gap:10px; margin-left:auto; align-items:center}
+    #oracle-ui .input,#oracle-ui .select{background:var(--panel); color:var(--ink); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px 12px}
+    #oracle-ui .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:16px}
+    @media(min-width:720px){#oracle-ui .grid{grid-template-columns:repeat(3,1fr)}}
+    @media(min-width:1024px){#oracle-ui .grid{grid-template-columns:repeat(4,1fr)}}
+    #oracle-ui .card{background:var(--panel); border:1px solid rgba(255,255,255,.07); border-radius:18px; overflow:hidden; box-shadow:0 6px 30px rgba(0,0,0,.35); transition:transform .2s ease, box-shadow .2s ease}
+    #oracle-ui .card:hover{transform:translateY(-2px); box-shadow:0 10px 40px rgba(0,0,0,.45)}
+    #oracle-ui .ph{position:relative; background:#07090f}
+    #oracle-ui .ph::before{content:""; display:block; aspect-ratio:9/16}
+    #oracle-ui .img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+    #oracle-ui .meta{display:flex; align-items:center; justify-content:space-between; padding:10px 10px 0}
+    #oracle-ui .badges{display:flex; gap:8px; align-items:center}
+    #oracle-ui .badge{font-size:11px; padding:4px 8px; border-radius:999px; background:#1b1f2e; color:#aab3c2; border:1px solid rgba(255,255,255,.08); letter-spacing:.2px}
+    #oracle-ui .badge.up{border-color:rgba(137,166,255,.35); color:#cfe0ff}
+    #oracle-ui .badge.rev{border-color:rgba(255,183,213,.35); color:#ffe1ec}
+    #oracle-ui .title{padding:8px 10px 12px; font-weight:700; line-height:1.35}
+    #oracle-ui .title small{display:block; color:#aab3c2; font-weight:500}
+    #oracle-ui .foot{padding:10px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,.06)}
+    #oracle-ui .btn{background:transparent; border:1px solid rgba(255,255,255,.12); color:var(--ink); border-radius:10px; padding:8px 10px; cursor:pointer}
+    #oracle-ui .btn:hover{border-color:rgba(255,255,255,.35)}
+    #oracle-ui .count{color:#aab3c2; font-size:12px}
+    /* Modal */
+    #oracle-ui .modal{position:fixed; inset:0; background:rgba(5,7,12,.72); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:50}
+    #oracle-ui .modal.open{display:flex}
+    #oracle-ui .sheet{width:min(100%,1000px); max-height:92vh; background:#121521; border:1px solid rgba(255,255,255,.08); border-radius:20px; overflow:hidden; box-shadow:0 10px 50px rgba(0,0,0,.55); display:grid; grid-template-columns:1fr}
+    @media(min-width:960px){#oracle-ui .sheet{grid-template-columns:9fr 7fr}}
+    #oracle-ui .view{position:relative; background:#06080d}
+    #oracle-ui .view::before{content:""; display:block; aspect-ratio:9/16}
+    #oracle-ui .view img{position:absolute; inset:0; width:100%; height:100%; object-fit:contain}
+    #oracle-ui .panel{padding:16px; overflow:auto}
+    #oracle-ui .h{font-weight:800; font-size:18px; margin:0}
+    #oracle-ui .sub{color:#aab3c2; margin:6px 0 12px}
+    #oracle-ui .kv{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 12px}
+    #oracle-ui .kv .badge{background:#0e1220}
+    #oracle-ui .desc{white-space:pre-wrap; line-height:1.6; color:#d7dbe6}
+    #oracle-ui .nav{display:flex; gap:10px; padding:10px; border-top:1px solid rgba(255,255,255,.06)}
+    #oracle-ui .spacer{flex:1}
+    #oracle-ui .empty{opacity:.7; color:#aab3c2; text-align:center; border:1px dashed rgba(255,255,255,.15); padding:16px; border-radius:12px}
+  </style>
 </head>
 <body>
+  <!-- ===== 既存：羽夢の影：闇とささやき ===== -->
+  <div id="veil"></div>
+  <div id="whisper" style="display: none;"></div>
+  <audio id="whisperSound" src="audio/whisper01.mp3"></audio>
+  <audio id="noiseLoop" src="audio/noise.mp3" loop></audio>
+
+  <!-- ===== 既存：背景・動画・カードゾーン ===== -->
   <div id="background-container">
     <img id="oracleimage" src="oracleimage.webp" alt="oracleimage" />
-    <video id="oracleritual" src="oracleritual.mp4" …></video>
+    <video id="oracleritual" src="oracleritual.mp4" playsinline muted loop></video>
     <div id="subtitle">── あなたの未来に触れる。</div>
     <div id="card-zone">
       <div class="card" id="card1"></div>
@@ -25,6 +73,159 @@
     </div>
   </div>
 
+  <!-- ===== 新規：Oracle Archetypes UI ===== -->
+  <div id="oracle-ui">
+    <header>
+      <div class="bar">
+        <div class="logo">Oracle Archetypes</div>
+        <span class="pill" id="status">5 / 12</span>
+        <div class="controls">
+          <input id="q" class="input" type="search" placeholder="検索：タイトル・キーワード" />
+          <select id="filter" class="select" aria-label="Filter">
+            <option value="all">すべて</option>
+            <option value="upright">正位置</option>
+            <option value="reversed">逆位置</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <div id="grid" class="grid" aria-live="polite"></div>
+      <div id="empty" class="empty" style="display:none">カードが見つかりません。</div>
+    </div>
+
+    <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="sheet">
+        <div class="view"><img id="modal-img" alt=""/></div>
+        <div class="panel">
+          <h2 class="h" id="modal-title"></h2>
+          <div class="sub" id="modal-sub"></div>
+          <div class="kv" id="modal-kv"></div>
+          <div class="desc" id="modal-desc"></div>
+          <div class="nav">
+            <button class="btn" id="prev">← 前</button>
+            <button class="btn" id="next">次 →</button>
+            <div class="spacer"></div>
+            <button class="btn" id="close">閉じる</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 既存：サイト用JS ===== -->
   <script src="script.js"></script>
+
+  <!-- ===== 新規：Oracle UI専用スクリプト（IIFEでグローバル汚染回避） ===== -->
+  <script>
+  (function(){
+    const root = document.getElementById('oracle-ui');
+    if(!root) return;
+    const $ = sel => root.querySelector(sel);
+
+    // ==== データ（正位置／逆位置を別レコードで保持） ====
+    const CARDS = [
+      { id:'A01', archetype:1, position:'upright',  title_ja:'解放', title_en:'Liberation', image:'assets/cards/A01_up.jpg', keywords:['release','air','freedom'], desc:'正位置解釈…' },
+      { id:'A01', archetype:1, position:'reversed', title_ja:'解放（逆位置）', title_en:'Liberation (Reversed)', image:'assets/cards/A01_rev.jpg', keywords:['restriction','hesitation','delay'], desc:'逆位置解釈…' },
+      { id:'A03', archetype:3, position:'upright',  title_ja:'創火', title_en:'Creation', image:'assets/cards/A03_up.jpg', keywords:['spark','craft','birth'], desc:'正位置: 手元の火と背景の構造を同期…' },
+      { id:'A03', archetype:3, position:'reversed', title_ja:'創火（逆位置）', title_en:'Creation (Reversed)', image:'assets/cards/A03_rev.jpg', keywords:['waste','false start','chaos'], desc:'逆位置: 可能性が霧散…' },
+      { id:'A07', archetype:7, position:'upright',  title_ja:'覚醒', title_en:'Awakening', image:'assets/cards/A07_up.jpg', keywords:['awaken','signal','clarity'], desc:'正位置: 新しい視野が開ける…' }
+    ];
+
+    const grid = $('#grid');
+    const empty = $('#empty');
+    const pill = $('#status');
+    const state = { q:'', filter:'all' };
+
+    function render(){
+      const q = state.q.trim().toLowerCase();
+      const f = state.filter;
+      let list = CARDS.filter(c=>{
+        const hit = (c.title_ja + ' ' + c.title_en + ' ' + c.id + ' ' + c.keywords.join(' ')).toLowerCase().includes(q);
+        const ok = (f==='all' || c.position===f);
+        return hit && ok;
+      }).sort((a,b)=> a.archetype - b.archetype || a.position.localeCompare(b.position));
+
+      grid.innerHTML = '';
+      empty.style.display = list.length? 'none':'block';
+
+      list.forEach(c=>{
+        const el = document.createElement('article');
+        el.className = 'card';
+        el.innerHTML = `
+          <div class="ph"><img class="img" loading="lazy" src="${c.image}" alt="${c.id} ${c.title_ja}"></div>
+          <div class="meta">
+            <div class="badges">
+              <span class="badge ${c.position==='upright'?'up':'rev'}">${c.position}</span>
+              <span class="badge">A${String(c.archetype).padStart(2,'0')}</span>
+              <span class="badge">${c.id}</span>
+            </div>
+            <button class="btn" data-open="${c.id}-${c.position}">詳細</button>
+          </div>
+          <div class="title">${c.title_ja}<small>${c.title_en}</small></div>
+          <div class="foot"><span class="count">キーワード: ${c.keywords.slice(0,3).join(', ')}</span></div>
+        `;
+        grid.appendChild(el);
+      });
+
+      pill.textContent = `${CARDS.length} / 12`;
+      addOpenHandlers(list);
+    }
+
+    function addOpenHandlers(list){
+      root.querySelectorAll('[data-open]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const key = btn.getAttribute('data-open');
+          const idx = list.findIndex(c=> `${c.id}-${c.position}`===key);
+          openModal(list, idx);
+        };
+      });
+    }
+
+    const modal = $('#modal');
+    const modalImg = $('#modal-img');
+    const modalTitle = $('#modal-title');
+    const modalSub = $('#modal-sub');
+    const modalKV = $('#modal-kv');
+    const modalDesc = $('#modal-desc');
+    $('#close').onclick = ()=> closeModal();
+
+    function openModal(list, idx){
+      if(idx<0) return;
+      const c = list[idx];
+      modalImg.src = c.image;
+      modalImg.alt = `${c.id} ${c.title_ja}`;
+      modalTitle.textContent = `${c.title_ja} — ${c.title_en}`;
+      modalSub.textContent = `ID: ${c.id} / Archetype: ${String(c.archetype).padStart(2,'0')} / ${c.position}`;
+      modalKV.innerHTML = `<span class="badge">9:16</span><span class="badge">spec: clean 2D anime</span>`;
+      modalDesc.textContent = c.desc;
+      modal.classList.add('open');
+
+      const next = root.querySelector('#next');
+      const prev = root.querySelector('#prev');
+      next.onclick = ()=>{ if(idx < list.length-1) openModal(list, idx+1); };
+      prev.onclick = ()=>{ if(idx > 0) openModal(list, idx-1); };
+
+      document.addEventListener('keydown', escListener);
+      modal.addEventListener('click', bgListener);
+    }
+    function closeModal(){
+      modal.classList.remove('open');
+      document.removeEventListener('keydown', escListener);
+      modal.removeEventListener('click', bgListener);
+    }
+    function escListener(e){ if(e.key==='Escape') closeModal(); }
+    function bgListener(e){ if(e.target===modal) closeModal(); }
+
+    // フィルタ/検索
+    $('#q').addEventListener('input', (e)=>{ state.q = e.target.value; render(); });
+    $('#filter').addEventListener('change', (e)=>{ state.filter = e.target.value; render(); });
+
+    // 初期描画
+    render();
+  })();
+  </script>
 </body>
 </html>
+
