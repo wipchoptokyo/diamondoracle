@@ -1,3 +1,4 @@
+/* ===== 層：黒い幕 ===== */
 #veil {
   position: fixed;
   top: 0; left: 0;
@@ -6,8 +7,16 @@
   z-index: 9999;
   opacity: 1;
   transition: opacity 3s ease;
+  will-change: opacity;
+}
+/* フェードアウト後のクリック透過（JSでopacityを0にしたら有効）*/
+#veil[aria-hidden="true"],
+#veil.is-hidden,
+#veil.fadeout {
+  pointer-events: none;
 }
 
+/* ===== 囁きテキスト ===== */
 #whisper {
   position: fixed;
   top: 50%;
@@ -23,6 +32,8 @@
   max-width: 80%;
   white-space: pre-line;
   pointer-events: none;
+  animation: whisper-flicker 3s ease-in-out infinite;
+  will-change: transform, filter, opacity;
 }
 
 @keyframes whisper-flicker {
@@ -35,7 +46,8 @@
   text-shadow: 0 0 4px red, 0 0 10px black;
   font-style: italic;
   letter-spacing: 1px;
-  animation: glitch 0.3s infinite !important;
+  animation: glitch 0.3s infinite !important; /* 上書きを強制 */
+  will-change: transform;
 }
 
 @keyframes glitch {
@@ -47,25 +59,14 @@
   100% { transform: translate(-50%, -50%) skew(0deg); }
 }
 
-#whisper {
-  /* 通常モードでは flicker アニメ */
-  animation: whisper-flicker 3s ease-in-out infinite;
-}
-
-.dark-whisper {
-  animation: glitch 0.3s infinite !important; /* 上書きを強制 */
-}
-
+/* ===== ベース ===== */
 body {
   margin: 0;
   background: black;
   font-family: 'Noto Sans JP', sans-serif;
 }
 
-.flicker-whisper {
-  animation: whisper-flicker 3s ease-in-out infinite;
-}
-
+/* ===== 背景レイヤ ===== */
 #background-container {
   position: relative;
   width: 100vw;
@@ -82,6 +83,7 @@ body {
   left: 0;
   z-index: 1;
   cursor: pointer;
+  will-change: opacity, transform;
 }
 
 #oracleritual {
@@ -98,8 +100,11 @@ body {
   color: white;
   z-index: 3;
   opacity: 0;
+  transition: opacity 1s ease;
 }
 
+/* ===== カード（背景ゾーン専用） ===== */
+/* グローバル .card ではなく、背景ゾーンに限定して衝突回避 */
 #card-zone {
   position: absolute;
   bottom: 5%;
@@ -110,12 +115,42 @@ body {
   z-index: 4;
 }
 
-.card {
+#card-zone .card {
   width: 120px;
   height: 180px;
   background: radial-gradient(#8e44ad, #2c3e50);
   border-radius: 10px;
   opacity: 0;
-  transform: translateY(50px);
-  transition: all 1s ease;
+  transform: translateY(50px) translateZ(0);
+  transition: opacity 1s ease, transform 1s ease;
+  will-change: opacity, transform;
+}
+
+/* ===== Oracle UI の前面固定（背景より上、veil/whisperより下） ===== */
+#oracle-ui {
+  position: relative;
+  z-index: 10;
+}
+
+/* ====== 衝突無効化：Oracle UI 内の .card は背景側の初期アニメを受けない ===== */
+#oracle-ui .card {
+  width: auto;
+  height: auto;
+  opacity: 1;
+  transform: none;
+  background: var(--panel); /* HTML側のインラインCSS変数に合わせる */
+}
+
+/* ===== モーション削減ユーザーへの配慮 ===== */
+@media (prefers-reduced-motion: reduce) {
+  #whisper,
+  .dark-whisper,
+  .flicker-whisper {
+    animation: none !important;
+  }
+  #veil,
+  #subtitle,
+  #card-zone .card {
+    transition: none !important;
+  }
 }
