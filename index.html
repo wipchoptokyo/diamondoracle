@@ -21,6 +21,10 @@
     @media(min-width:1024px){#oracle-ui .grid{grid-template-columns:repeat(4,1fr)}}
     #oracle-ui .card{background:var(--panel); border:1px solid rgba(255,255,255,.07); border-radius:18px; overflow:hidden; box-shadow:0 6px 30px rgba(0,0,0,.35); transition:transform .2s ease, box-shadow .2s ease}
     #oracle-ui .card:hover{transform:translateY(-2px); box-shadow:0 10px 40px rgba(0,0,0,.45)}
+    @media (prefers-reduced-motion: reduce){
+      #oracle-ui .card{transition:none}
+      #oracle-ui .card:hover{transform:none; box-shadow:0 6px 30px rgba(0,0,0,.35)}
+    }
     #oracle-ui .ph{position:relative; background:#07090f}
     #oracle-ui .ph::before{content:""; display:block; aspect-ratio:9/16}
     #oracle-ui .img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
@@ -74,14 +78,14 @@
   </div>
 
   <!-- ===== 新規：Oracle Archetypes UI ===== -->
-  <div id="oracle-ui">
+  <div id="oracle-ui" aria-live="polite">
     <header>
       <div class="bar">
         <div class="logo">Oracle Archetypes</div>
-        <span class="pill" id="status">5 / 5</span>
+        <span class="pill" id="status" aria-live="polite">5 / 5</span>
         <div class="controls">
-          <input id="q" class="input" type="search" placeholder="検索：タイトル・キーワード" />
-          <select id="filter" class="select" aria-label="Filter">
+          <input id="q" class="input" type="search" placeholder="検索：タイトル・キーワード" aria-label="カード検索" />
+          <select id="filter" class="select" aria-label="位置でフィルタ">
             <option value="all">すべて</option>
             <option value="upright">正位置</option>
             <option value="reversed">逆位置</option>
@@ -91,8 +95,8 @@
     </header>
 
     <div class="wrap">
-      <div id="grid" class="grid" aria-live="polite"></div>
-      <div id="empty" class="empty" style="display:none">カードが見つかりません。</div>
+      <div id="grid" class="grid"></div>
+      <div id="empty" class="empty" style="display:none"></div>
     </div>
 
     <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -104,10 +108,10 @@
           <div class="kv" id="modal-kv"></div>
           <div class="desc" id="modal-desc"></div>
           <div class="nav">
-            <button class="btn" id="prev">← 前</button>
-            <button class="btn" id="next">次 →</button>
+            <button class="btn" id="prev" type="button" aria-label="前へ">← 前</button>
+            <button class="btn" id="next" type="button" aria-label="次へ">次 →</button>
             <div class="spacer"></div>
-            <button class="btn" id="close">閉じる</button>
+            <button class="btn" id="close" type="button" aria-label="閉じる">閉じる</button>
           </div>
         </div>
       </div>
@@ -122,101 +126,175 @@
   (function(){
     const root = document.getElementById('oracle-ui');
     if(!root) return;
-    const $ = sel => root.querySelector(sel);
+    const $  = sel => root.querySelector(sel);
 
     // ==== データ（正位置／逆位置を別レコードで保持） ====
- const CARDS = [
-  { id:'A01', archetype:1, position:'upright', title_ja:'解放',   title_en:'Liberation', image:'assets/cards/A01_up.png', keywords:['release','air','freedom'], desc:'正位置解釈…' },
-  { id:'A02', archetype:2, position:'upright', title_ja:'？？',   title_en:'???',        image:'assets/cards/A02_up.png', keywords:['keyword1','keyword2'], desc:'正位置解釈…' },
-  { id:'A03', archetype:3, position:'upright', title_ja:'創火',   title_en:'Creation',   image:'assets/cards/A03_up.png', keywords:['spark','craft','birth'], desc:'正位置: 手元の火と背景の構造を同期…' },
-  { id:'A04', archetype:4, position:'upright', title_ja:'？？',   title_en:'???',        image:'assets/cards/A04_up.png', keywords:['keyword1','keyword2'], desc:'正位置解釈…' },
-  { id:'A05', archetype:5, position:'upright', title_ja:'覚醒',   title_en:'Awakening',  image:'assets/cards/A05_up.png', keywords:['awaken','signal','clarity'], desc:'正位置: 新しい視野が開ける…' }
-];
+    const CARDS = [
+      { id:'A01', archetype:1, position:'upright', title_ja:'解放',   title_en:'Liberation', image:'assets/cards/A01_up.png', keywords:['release','air','freedom'], desc:'正位置解釈…' },
+      { id:'A02', archetype:2, position:'upright', title_ja:'？？',   title_en:'???',        image:'assets/cards/A02_up.png', keywords:['keyword1','keyword2'], desc:'正位置解釈…' },
+      { id:'A03', archetype:3, position:'upright', title_ja:'創火',   title_en:'Creation',   image:'assets/cards/A03_up.png', keywords:['spark','craft','birth'], desc:'正位置: 手元の火と背景の構造を同期…' },
+      { id:'A04', archetype:4, position:'upright', title_ja:'？？',   title_en:'???',        image:'assets/cards/A04_up.png', keywords:['keyword1','keyword2'], desc:'正位置解釈…' },
+      { id:'A05', archetype:5, position:'upright', title_ja:'覚醒',   title_en:'Awakening',  image:'assets/cards/A05_up.png', keywords:['awaken','signal','clarity'], desc:'正位置: 新しい視野が開ける…' }
+    ];
 
-    const grid = $('#grid');
-    const empty = $('#empty');
-    const pill = $('#status');
-    const state = { q:'', filter:'all' };
+    const grid   = $('#grid');
+    const empty  = $('#empty');
+    const pill   = $('#status');
+    const state  = { q:'', filter:'all' };
+
+    // フィルタ名（表示用）
+    const FILTER_LABEL = { all:'すべて', upright:'正位置', reversed:'逆位置' };
+
+    function humanizePosition(pos){
+      return pos === 'upright' ? '正位置' : pos === 'reversed' ? '逆位置' : pos;
+    }
 
     function render(){
       const q = state.q.trim().toLowerCase();
       const f = state.filter;
+
       let list = CARDS.filter(c=>{
-        const hit = (c.title_ja + ' ' + c.title_en + ' ' + c.id + ' ' + c.keywords.join(' ')).toLowerCase().includes(q);
-        const ok = (f==='all' || c.position===f);
+        const hay = (c.title_ja + ' ' + c.title_en + ' ' + c.id + ' ' + c.keywords.join(' ')).toLowerCase();
+        const hit = !q || hay.includes(q);
+        const ok  = (f==='all' || c.position===f);
         return hit && ok;
       }).sort((a,b)=> a.archetype - b.archetype || a.position.localeCompare(b.position));
 
       grid.innerHTML = '';
-      empty.style.display = list.length? 'none':'block';
+
+      // 件数 & 空メッセージ
+      const label = FILTER_LABEL[f] || 'すべて';
+      pill.textContent = `${list.length} / ${CARDS.length}（${label}${q ? `・検索: "${state.q}"` : ''}）`;
+
+      if(!list.length){
+        empty.style.display = 'block';
+        empty.textContent = q
+          ? `「${state.q}」に一致するカードが見つかりません。`
+          : `カードが見つかりません。`;
+        return;
+      } else {
+        empty.style.display = 'none';
+      }
+
+      const frag = document.createDocumentFragment();
 
       list.forEach(c=>{
         const el = document.createElement('article');
         el.className = 'card';
+        const posLabel = humanizePosition(c.position);
+        const arch = `A${String(c.archetype).padStart(2,'0')}`;
+
         el.innerHTML = `
-          <div class="ph"><img class="img" loading="lazy" src="${c.image}" alt="${c.id} ${c.title_ja}"></div>
+          <div class="ph">
+            <img class="img" loading="lazy" src="${c.image}" alt="${c.id} ${c.title_ja}">
+          </div>
           <div class="meta">
-            <div class="badges">
-              <span class="badge ${c.position==='upright'?'up':'rev'}">${c.position}</span>
-              <span class="badge">A${String(c.archetype).padStart(2,'0')}</span>
-              <span class="badge">${c.id}</span>
+            <div class="badges" aria-label="属性">
+              <span class="badge ${c.position==='upright'?'up':'rev'}" aria-label="${posLabel}">${posLabel}</span>
+              <span class="badge" aria-label="アーキタイプ">${arch}</span>
+              <span class="badge" aria-label="ID">${c.id}</span>
             </div>
-            <button class="btn" data-open="${c.id}-${c.position}">詳細</button>
+            <button class="btn" type="button" data-open="${c.id}-${c.position}" aria-label="詳細を開く: ${c.title_ja}">詳細</button>
           </div>
           <div class="title">${c.title_ja}<small>${c.title_en}</small></div>
           <div class="foot"><span class="count">キーワード: ${c.keywords.slice(0,3).join(', ')}</span></div>
         `;
-        grid.appendChild(el);
+        // 画像フォールバック
+        const img = el.querySelector('img');
+        img.onerror = ()=>{ img.src = 'assets/cards/_placeholder.png'; img.alt = `${c.id} 画像読み込みエラー`; };
+
+        frag.appendChild(el);
       });
 
-      pill.textContent = `${CARDS.length} / 5/5`;
+      grid.appendChild(frag);
       addOpenHandlers(list);
     }
 
-    function addOpenHandlers(list){
+    function addOpenHandlers(currentList){
       root.querySelectorAll('[data-open]').forEach(btn=>{
         btn.onclick = ()=>{
           const key = btn.getAttribute('data-open');
-          const idx = list.findIndex(c=> `${c.id}-${c.position}`===key);
-          openModal(list, idx);
+          const idx = currentList.findIndex(c=> `${c.id}-${c.position}`===key);
+          openModal(currentList, idx, btn);
         };
       });
     }
 
-    const modal = $('#modal');
-    const modalImg = $('#modal-img');
+    // ===== モーダル =====
+    const modal      = $('#modal');
+    const modalImg   = $('#modal-img');
     const modalTitle = $('#modal-title');
-    const modalSub = $('#modal-sub');
-    const modalKV = $('#modal-kv');
-    const modalDesc = $('#modal-desc');
-    $('#close').onclick = ()=> closeModal();
+    const modalSub   = $('#modal-sub');
+    const modalKV    = $('#modal-kv');
+    const modalDesc  = $('#modal-desc');
+    const btnClose   = $('#close');
+    const btnNext    = $('#next');
+    const btnPrev    = $('#prev');
 
-    function openModal(list, idx){
-      if(idx<0) return;
-      const c = list[idx];
-      modalImg.src = c.image;
-      modalImg.alt = `${c.id} ${c.title_ja}`;
-      modalTitle.textContent = `${c.title_ja} — ${c.title_en}`;
-      modalSub.textContent = `ID: ${c.id} / Archetype: ${String(c.archetype).padStart(2,'0')} / ${c.position}`;
-      modalKV.innerHTML = `<span class="badge">9:16</span><span class="badge">spec: clean 2D anime</span>`;
-      modalDesc.textContent = c.desc;
+    let lastFocus = null; // フォーカス復帰用
+
+    btnClose.onclick = ()=> closeModal();
+
+    function openModal(list, startIdx, triggerEl){
+      if(startIdx<0) return;
+      lastFocus = triggerEl || document.activeElement;
+
+      function show(idx){
+        const c = list[idx];
+        if(!c) return;
+        modalImg.src = c.image;
+        modalImg.alt = `${c.id} ${c.title_ja}`;
+        modalTitle.textContent = `${c.title_ja} — ${c.title_en}`;
+        modalSub.textContent = `ID: ${c.id} / Archetype: ${String(c.archetype).padStart(2,'0')} / ${humanizePosition(c.position)}`;
+        modalKV.innerHTML = `<span class="badge">9:16</span><span class="badge">spec: clean 2D anime</span>`;
+        modalDesc.textContent = c.desc;
+
+        // 次前ボタンの束縛を都度更新
+        btnNext.disabled = idx >= list.length-1;
+        btnPrev.disabled = idx <= 0;
+        btnNext.onclick = ()=>{ if(idx < list.length-1) show(idx+1); };
+        btnPrev.onclick = ()=>{ if(idx > 0) show(idx-1); };
+      }
+
+      // 表示＆フォーカストラップ開始
       modal.classList.add('open');
-
-      const next = root.querySelector('#next');
-      const prev = root.querySelector('#prev');
-      next.onclick = ()=>{ if(idx < list.length-1) openModal(list, idx+1); };
-      prev.onclick = ()=>{ if(idx > 0) openModal(list, idx-1); };
+      show(startIdx);
+      trapFocus(modal);
 
       document.addEventListener('keydown', escListener);
       modal.addEventListener('click', bgListener);
     }
+
     function closeModal(){
       modal.classList.remove('open');
+      releaseFocusTrap();
       document.removeEventListener('keydown', escListener);
       modal.removeEventListener('click', bgListener);
+      if(lastFocus && typeof lastFocus.focus==='function') lastFocus.focus();
     }
+
     function escListener(e){ if(e.key==='Escape') closeModal(); }
     function bgListener(e){ if(e.target===modal) closeModal(); }
+
+    // ===== フォーカストラップ =====
+    let trapCleanup = null;
+    function trapFocus(container){
+      const focusables = container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const list = Array.from(focusables).filter(el=>!el.hasAttribute('disabled') && !el.getAttribute('aria-hidden'));
+      const first = list[0] || container;
+      const last  = list[list.length-1] || container;
+      first.focus();
+
+      function handle(e){
+        if(e.key!=='Tab') return;
+        if(list.length===0){ e.preventDefault(); return; }
+        if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+        else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+      }
+      document.addEventListener('keydown', handle);
+      trapCleanup = ()=> document.removeEventListener('keydown', handle);
+    }
+    function releaseFocusTrap(){ if(trapCleanup){ trapCleanup(); trapCleanup = null; } }
 
     // フィルタ/検索
     $('#q').addEventListener('input', (e)=>{ state.q = e.target.value; render(); });
@@ -228,8 +306,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
