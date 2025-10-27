@@ -2,307 +2,218 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>占いサイト — Oracle Archetypes統合版</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oracle Archetypes 統合版</title>
   <style>
-    /* ===== Oracle UI（衝突回避のため #oracle-ui 配下に限定） ===== */
-    #oracle-ui{--bg:#0b0d12; --panel:#121521; --ink:#e9ecf1; --muted:#aab3c2; --chip:#1b1f2e;}
-    #oracle-ui{color:var(--ink)}
-    #oracle-ui .wrap{max-width:1200px; margin:40px auto 80px; padding:0 16px}
-    #oracle-ui header{position:sticky; top:0; z-index:20; backdrop-filter:saturate(1.1) blur(8px); background:linear-gradient(180deg,rgba(11,13,18,.9),rgba(11,13,18,.4)); border-bottom:1px solid rgba(255,255,255,.06)}
-    #oracle-ui header .bar{max-width:1200px; margin:0 auto; padding:12px 16px; display:flex; gap:12px; align-items:center}
-    #oracle-ui .logo{font-weight:800; letter-spacing:.4px}
-    #oracle-ui .pill{font-size:12px; padding:4px 8px; border-radius:999px; background:var(--chip); color:var(--muted); border:1px solid rgba(255,255,255,.06)}
-    #oracle-ui .controls{display:flex; gap:10px; margin-left:auto; align-items:center}
-    #oracle-ui .input,#oracle-ui .select{background:var(--panel); color:var(--ink); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px 12px}
-    #oracle-ui .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:16px}
-    @media(min-width:720px){#oracle-ui .grid{grid-template-columns:repeat(3,1fr)}}
-    @media(min-width:1024px){#oracle-ui .grid{grid-template-columns:repeat(4,1fr)}}
-    #oracle-ui .card{background:var(--panel); border:1px solid rgba(255,255,255,.07); border-radius:18px; overflow:hidden; box-shadow:0 6px 30px rgba(0,0,0,.35); transition:transform .2s ease, box-shadow .2s ease}
-    #oracle-ui .card:hover{transform:translateY(-2px); box-shadow:0 10px 40px rgba(0,0,0,.45)}
-    @media (prefers-reduced-motion: reduce){
-      #oracle-ui .card{transition:none}
-      #oracle-ui .card:hover{transform:none; box-shadow:0 6px 30px rgba(0,0,0,.35)}
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: 'Noto Sans JP', sans-serif;
+      overflow-x: hidden;
     }
-    #oracle-ui .ph{position:relative; background:#07090f}
-    #oracle-ui .ph::before{content:""; display:block; aspect-ratio:9/16}
-    #oracle-ui .img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
-    #oracle-ui .meta{display:flex; align-items:center; justify-content:space-between; padding:10px 10px 0}
-    #oracle-ui .badges{display:flex; gap:8px; align-items:center}
-    #oracle-ui .badge{font-size:11px; padding:4px 8px; border-radius:999px; background:#1b1f2e; color:#aab3c2; border:1px solid rgba(255,255,255,.08); letter-spacing:.2px}
-    #oracle-ui .badge.up{border-color:rgba(137,166,255,.35); color:#cfe0ff}
-    #oracle-ui .badge.rev{border-color:rgba(255,183,213,.35); color:#ffe1ec}
-    #oracle-ui .title{padding:8px 10px 12px; font-weight:700; line-height:1.35}
-    #oracle-ui .title small{display:block; color:#aab3c2; font-weight:500}
-    #oracle-ui .foot{padding:10px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,.06)}
-    #oracle-ui .btn{background:transparent; border:1px solid rgba(255,255,255,.12); color:var(--ink); border-radius:10px; padding:8px 10px; cursor:pointer}
-    #oracle-ui .btn:hover{border-color:rgba(255,255,255,.35)}
-    #oracle-ui .count{color:#aab3c2; font-size:12px}
-    /* Modal */
-    #oracle-ui .modal{position:fixed; inset:0; background:rgba(5,7,12,.72); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:50}
-    #oracle-ui .modal.open{display:flex}
-    #oracle-ui .sheet{width:min(100%,1000px); max-height:92vh; background:#121521; border:1px solid rgba(255,255,255,.08); border-radius:20px; overflow:hidden; box-shadow:0 10px 50px rgba(0,0,0,.55); display:grid; grid-template-columns:1fr}
-    @media(min-width:960px){#oracle-ui .sheet{grid-template-columns:9fr 7fr}}
-    #oracle-ui .view{position:relative; background:#06080d}
-    #oracle-ui .view::before{content:""; display:block; aspect-ratio:9/16}
-    #oracle-ui .view img{position:absolute; inset:0; width:100%; height:100%; object-fit:contain}
-    #oracle-ui .panel{padding:16px; overflow:auto}
-    #oracle-ui .h{font-weight:800; font-size:18px; margin:0}
-    #oracle-ui .sub{color:#aab3c2; margin:6px 0 12px}
-    #oracle-ui .kv{display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 12px}
-    #oracle-ui .kv .badge{background:#0e1220}
-    #oracle-ui .desc{white-space:pre-wrap; line-height:1.6; color:#d7dbe6}
-    #oracle-ui .nav{display:flex; gap:10px; padding:10px; border-top:1px solid rgba(255,255,255,.06)}
-    #oracle-ui .spacer{flex:1}
-    #oracle-ui .empty{opacity:.7; color:#aab3c2; text-align:center; border:1px dashed rgba(255,255,255,.15); padding:16px; border-radius:12px}
+
+    /* ===== 上層（静止画＋動画＋字幕） ===== */
+    #background-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #oracleimage,
+    #oracleritual {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+      cursor: pointer;
+    }
+
+    #oracleritual {
+      display: none; /* 最初は非表示、クリックで再生 */
+      z-index: 2;
+    }
+
+    #subtitle {
+      position: absolute;
+      bottom: 10%;
+      width: 100%;
+      text-align: center;
+      font-size: 1.6rem;
+      letter-spacing: 1px;
+      color: #fff;
+      opacity: 0;
+      transition: opacity 2s ease;
+      z-index: 3;
+      text-shadow: 0 0 10px rgba(0,0,0,0.6);
+    }
+
+    /* ===== 下層（カード背景） ===== */
+    #lower-scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: url('card-background.webp') center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #card-zone {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .card {
+      width: 160px;
+      height: 260px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 1.5s ease;
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 0 25px rgba(0,0,0,0.4);
+    }
+
+    /* JSで生成される誘導メッセージ */
+    #guide-text {
+      position: absolute;
+      bottom: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      font-size: 1.2rem;
+      text-shadow: 0 0 10px #000;
+      opacity: 0;
+      transition: opacity 1.5s ease;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
-  <!-- ===== 既存：羽夢の影：闇とささやき ===== -->
-  <div id="veil"></div>
-  <div id="whisper" style="display: none;"></div>
-  <audio id="whisperSound" src="audio/whisper01.mp3"></audio>
-  <audio id="noiseLoop" src="audio/noise.mp3" loop></audio>
 
-  <!-- ===== 既存：背景・動画・カードゾーン ===== -->
+  <!-- ===== 上層：儀式背景 ===== -->
   <div id="background-container">
     <img id="oracleimage" src="oracleimage.webp" alt="oracleimage" />
-    <video id="oracleritual" src="oracleritual.mp4" playsinline muted loop></video>
+    <video id="oracleritual" src="oracleritual.mp4" playsinline muted></video>
     <div id="subtitle">── あなたの未来に触れる。</div>
+  </div>
+
+  <!-- ===== 下層：カード背景エリア ===== -->
+  <div id="lower-scene">
     <div id="card-zone">
-      <div class="card" id="card1"></div>
-      <div class="card" id="card2"></div>
-      <div class="card" id="card3"></div>
+      <div class="card" id="card-past"></div>
+      <div class="card" id="card-current"></div>
+      <div class="card" id="card-future"></div>
     </div>
   </div>
 
-  <!-- ===== 新規：Oracle Archetypes UI ===== -->
-  <div id="oracle-ui" aria-live="polite">
-    <header>
-      <div class="bar">
-        <div class="logo">Oracle Archetypes</div>
-        <span class="pill" id="status" aria-live="polite">5 / 5</span>
-        <div class="controls">
-          <input id="q" class="input" type="search" placeholder="検索：タイトル・キーワード" aria-label="カード検索" />
-          <select id="filter" class="select" aria-label="位置でフィルタ">
-            <option value="all">すべて</option>
-            <option value="upright">正位置</option>
-            <option value="reversed">逆位置</option>
-          </select>
-        </div>
-      </div>
-    </header>
-
-    <div class="wrap">
-      <div id="grid" class="grid"></div>
-      <div id="empty" class="empty" style="display:none"></div>
-    </div>
-
-    <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div class="sheet">
-        <div class="view"><img id="modal-img" alt=""/></div>
-        <div class="panel">
-          <h2 class="h" id="modal-title"></h2>
-          <div class="sub" id="modal-sub"></div>
-          <div class="kv" id="modal-kv"></div>
-          <div class="desc" id="modal-desc"></div>
-          <div class="nav">
-            <button class="btn" id="prev" type="button" aria-label="前へ">← 前</button>
-            <button class="btn" id="next" type="button" aria-label="次へ">次 →</button>
-            <div class="spacer"></div>
-            <button class="btn" id="close" type="button" aria-label="閉じる">閉じる</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== 既存：サイト用JS ===== -->
-  <script src="script.js"></script>
-
-  <!-- ===== 新規：Oracle UI専用スクリプト（IIFEでグローバル汚染回避） ===== -->
+  <!-- ===== 演出スクリプト（クリック二段階制御） ===== -->
   <script>
-  (function(){
-    const root = document.getElementById('oracle-ui');
-    if(!root) return;
-    const $  = sel => root.querySelector(sel);
+    let stage = 0; // 0=初期, 1=現在カード表示後, 2=完了
 
-    // ==== データ（正位置／逆位置を別レコードで保持） ====
-    const CARDS = [
-      { id:'A01', archetype:1, position:'upright', title_ja:'解放',   title_en:'Liberation', image:'assets/cards/A01_up.png', keywords:['release','air','freedom'], desc:'正位置解釈…' },
-      { id:'A02', archetype:2, position:'upright', title_ja:'？？',   title_en:'???',        image:'assets/cards/A02_up.png', keywords:['keyword1','keyword2'], desc:'正位置解釈…' },
-      { id:'A03', archetype:3, position:'upright', title_ja:'創火',   title_en:'Creation',   image:'assets/cards/A03_up.png', keywords:['spark','craft','birth'], desc:'正位置: 手元の火と背景の構造を同期…' },
-      { id:'A04', archetype:4, position:'upright', title_ja:'？？',   title_en:'???',        image:'assets/cards/A04_up.png', keywords:['keyword1','keyword2'], desc:'正位置解釈…' },
-      { id:'A05', archetype:5, position:'upright', title_ja:'覚醒',   title_en:'Awakening',  image:'assets/cards/A05_up.png', keywords:['awaken','signal','clarity'], desc:'正位置: 新しい視野が開ける…' }
-    ];
+    const image = document.getElementById('oracleimage');
+    const video = document.getElementById('oracleritual');
+    const subtitle = document.getElementById('subtitle');
+    const lowerScene = document.getElementById('lower-scene');
 
-    const grid   = $('#grid');
-    const empty  = $('#empty');
-    const pill   = $('#status');
-    const state  = { q:'', filter:'all' };
+    // ===== ガイド文を生成 =====
+    const guide = document.createElement('div');
+    guide.id = "guide-text";
+    document.body.appendChild(guide);
 
-    // フィルタ名（表示用）
-    const FILTER_LABEL = { all:'すべて', upright:'正位置', reversed:'逆位置' };
-
-    function humanizePosition(pos){
-      return pos === 'upright' ? '正位置' : pos === 'reversed' ? '逆位置' : pos;
+    function showGuide(text) {
+      guide.textContent = text;
+      guide.style.opacity = 1;
+    }
+    function hideGuide() {
+      guide.style.opacity = 0;
     }
 
-    function render(){
-      const q = state.q.trim().toLowerCase();
-      const f = state.filter;
+    // ===== 仮デッキ（12 / 9 / 9構成） =====
+    const DECK = {
+      archetypes: Array.from({length:12}, (_,i)=>({
+        id:`A${i+1}`, name:`Archetype ${i+1}`, image:`assets/archetype_${i+1}.png`
+      })),
+      past: Array.from({length:9}, (_,i)=>({
+        id:`P${i+1}`, name:`Past ${i+1}`, image:`assets/past_${i+1}.png`
+      })),
+      future: Array.from({length:9}, (_,i)=>({
+        id:`F${i+1}`, name:`Future ${i+1}`, image:`assets/future_${i+1}.png`
+      }))
+    };
 
-      let list = CARDS.filter(c=>{
-        const hay = (c.title_ja + ' ' + c.title_en + ' ' + c.id + ' ' + c.keywords.join(' ')).toLowerCase();
-        const hit = !q || hay.includes(q);
-        const ok  = (f==='all' || c.position===f);
-        return hit && ok;
-      }).sort((a,b)=> a.archetype - b.archetype || a.position.localeCompare(b.position));
+    function drawRandom(deck) {
+      return deck[Math.floor(Math.random() * deck.length)];
+    }
 
-      grid.innerHTML = '';
+    function renderCard(slotId, cardData, delay = 0) {
+      const slot = document.getElementById(slotId);
+      slot.style.backgroundImage = `url(${cardData.image})`;
+      setTimeout(() => {
+        slot.style.opacity = "1";
+        slot.style.transform = "translateY(0)";
+      }, delay);
+    }
 
-      // 件数 & 空メッセージ
-      const label = FILTER_LABEL[f] || 'すべて';
-      pill.textContent = `${list.length} / ${CARDS.length}（${label}${q ? `・検索: "${state.q}"` : ''}）`;
+    // ===== クリック1回目：動画再生＋現在カード表示 =====
+    image.addEventListener('click', () => {
+      if(stage !== 0) return;
+      stage = 0.5;
 
-      if(!list.length){
-        empty.style.display = 'block';
-        empty.textContent = q
-          ? `「${state.q}」に一致するカードが見つかりません。`
-          : `カードが見つかりません。`;
-        return;
-      } else {
-        empty.style.display = 'none';
+      image.style.display = 'none';
+      video.style.display = 'block';
+      video.currentTime = 0;
+      video.play();
+
+      // 字幕フェードイン
+      setTimeout(() => {
+        subtitle.style.transition = 'opacity 2s ease';
+        subtitle.style.opacity = 1;
+      }, 2000);
+
+      // 動画終了後：スクロールせず、その場で現在カード表示
+      video.onended = () => {
+        subtitle.style.opacity = 0;
+
+        // 現在カード表示
+        const current = drawRandom(DECK.archetypes);
+        renderCard('card-current', current);
+        stage = 1;
+
+        // 誘導メッセージ表示
+        setTimeout(() => {
+          showGuide("── 次のカードを引く準備ができたら、クリックしてください。");
+        }, 1200);
+      };
+    });
+
+    // ===== クリック2回目：過去・未来カード表示＋下層スクロール =====
+    document.addEventListener('click', () => {
+      if (stage === 1) {
+        hideGuide();
+        const past = drawRandom(DECK.past);
+        const future = drawRandom(DECK.future);
+
+        renderCard('card-past', past);
+        renderCard('card-future', future);
+        stage = 2;
+
+        // カードが出揃った後に下層へ自動スクロール
+        setTimeout(() => {
+          lowerScene.scrollIntoView({ behavior: 'smooth' });
+        }, 2500);
       }
-
-      const frag = document.createDocumentFragment();
-
-      list.forEach(c=>{
-        const el = document.createElement('article');
-        el.className = 'card';
-        const posLabel = humanizePosition(c.position);
-        const arch = `A${String(c.archetype).padStart(2,'0')}`;
-
-        el.innerHTML = `
-          <div class="ph">
-            <img class="img" loading="lazy" src="${c.image}" alt="${c.id} ${c.title_ja}">
-          </div>
-          <div class="meta">
-            <div class="badges" aria-label="属性">
-              <span class="badge ${c.position==='upright'?'up':'rev'}" aria-label="${posLabel}">${posLabel}</span>
-              <span class="badge" aria-label="アーキタイプ">${arch}</span>
-              <span class="badge" aria-label="ID">${c.id}</span>
-            </div>
-            <button class="btn" type="button" data-open="${c.id}-${c.position}" aria-label="詳細を開く: ${c.title_ja}">詳細</button>
-          </div>
-          <div class="title">${c.title_ja}<small>${c.title_en}</small></div>
-          <div class="foot"><span class="count">キーワード: ${c.keywords.slice(0,3).join(', ')}</span></div>
-        `;
-        // 画像フォールバック
-        const img = el.querySelector('img');
-        img.onerror = ()=>{ img.src = 'assets/cards/_placeholder.png'; img.alt = `${c.id} 画像読み込みエラー`; };
-
-        frag.appendChild(el);
-      });
-
-      grid.appendChild(frag);
-      addOpenHandlers(list);
-    }
-
-    function addOpenHandlers(currentList){
-      root.querySelectorAll('[data-open]').forEach(btn=>{
-        btn.onclick = ()=>{
-          const key = btn.getAttribute('data-open');
-          const idx = currentList.findIndex(c=> `${c.id}-${c.position}`===key);
-          openModal(currentList, idx, btn);
-        };
-      });
-    }
-
-    // ===== モーダル =====
-    const modal      = $('#modal');
-    const modalImg   = $('#modal-img');
-    const modalTitle = $('#modal-title');
-    const modalSub   = $('#modal-sub');
-    const modalKV    = $('#modal-kv');
-    const modalDesc  = $('#modal-desc');
-    const btnClose   = $('#close');
-    const btnNext    = $('#next');
-    const btnPrev    = $('#prev');
-
-    let lastFocus = null; // フォーカス復帰用
-
-    btnClose.onclick = ()=> closeModal();
-
-    function openModal(list, startIdx, triggerEl){
-      if(startIdx<0) return;
-      lastFocus = triggerEl || document.activeElement;
-
-      function show(idx){
-        const c = list[idx];
-        if(!c) return;
-        modalImg.src = c.image;
-        modalImg.alt = `${c.id} ${c.title_ja}`;
-        modalTitle.textContent = `${c.title_ja} — ${c.title_en}`;
-        modalSub.textContent = `ID: ${c.id} / Archetype: ${String(c.archetype).padStart(2,'0')} / ${humanizePosition(c.position)}`;
-        modalKV.innerHTML = `<span class="badge">9:16</span><span class="badge">spec: clean 2D anime</span>`;
-        modalDesc.textContent = c.desc;
-
-        // 次前ボタンの束縛を都度更新
-        btnNext.disabled = idx >= list.length-1;
-        btnPrev.disabled = idx <= 0;
-        btnNext.onclick = ()=>{ if(idx < list.length-1) show(idx+1); };
-        btnPrev.onclick = ()=>{ if(idx > 0) show(idx-1); };
-      }
-
-      // 表示＆フォーカストラップ開始
-      modal.classList.add('open');
-      show(startIdx);
-      trapFocus(modal);
-
-      document.addEventListener('keydown', escListener);
-      modal.addEventListener('click', bgListener);
-    }
-
-    function closeModal(){
-      modal.classList.remove('open');
-      releaseFocusTrap();
-      document.removeEventListener('keydown', escListener);
-      modal.removeEventListener('click', bgListener);
-      if(lastFocus && typeof lastFocus.focus==='function') lastFocus.focus();
-    }
-
-    function escListener(e){ if(e.key==='Escape') closeModal(); }
-    function bgListener(e){ if(e.target===modal) closeModal(); }
-
-    // ===== フォーカストラップ =====
-    let trapCleanup = null;
-    function trapFocus(container){
-      const focusables = container.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-      const list = Array.from(focusables).filter(el=>!el.hasAttribute('disabled') && !el.getAttribute('aria-hidden'));
-      const first = list[0] || container;
-      const last  = list[list.length-1] || container;
-      first.focus();
-
-      function handle(e){
-        if(e.key!=='Tab') return;
-        if(list.length===0){ e.preventDefault(); return; }
-        if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
-        else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
-      }
-      document.addEventListener('keydown', handle);
-      trapCleanup = ()=> document.removeEventListener('keydown', handle);
-    }
-    function releaseFocusTrap(){ if(trapCleanup){ trapCleanup(); trapCleanup = null; } }
-
-    // フィルタ/検索
-    $('#q').addEventListener('input', (e)=>{ state.q = e.target.value; render(); });
-    $('#filter').addEventListener('change', (e)=>{ state.filter = e.target.value; render(); });
-
-    // 初期描画
-    render();
-  })();
+    });
   </script>
 </body>
 </html>
