@@ -1,102 +1,59 @@
-/* ===== 黒幕（フェード演出） ===== */
-#veil {
-  position: fixed;
-  inset: 0;
-  width: 100%; height: 100%;
-  background: #000;
-  z-index: 9999;
-  opacity: 1;
-  transition: opacity 3s ease;
-  will-change: opacity;
-}
-/* フェードアウト後はクリック透過 */
-#veil[aria-hidden="true"],
-#veil.is-hidden,
-#veil.fadeout { pointer-events: none; }
-
-/* ===== 囁きテキスト ===== */
-#whisper {
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: serif;
-  font-size: 20px;
-  color: #ccc;
-  opacity: 0;
-  transition: opacity 2s ease;
-  z-index: 10000;
-  text-align: center;
-  max-width: 80%;
-  white-space: pre-line;
-  pointer-events: none;
-  animation: whisper-flicker 3s ease-in-out infinite;
-  will-change: transform, filter, opacity;
-}
-@keyframes whisper-flicker {
-  0%,100% { filter: blur(1px); transform: translate(-50%, -50%) scale(1); opacity: .85; }
-  50%     { filter: blur(2px); transform: translate(-50%, -52%) scale(1.01); opacity: 1; }
-}
-.dark-whisper {
-  color: #f33 !important;
-  text-shadow: 0 0 4px red, 0 0 10px #000;
-  font-style: italic;
-  letter-spacing: 1px;
-  animation: glitch .3s infinite !important;
-  will-change: transform;
-}
-@keyframes glitch {
-  0%{transform:translate(-50%,-50%) skew(.3deg)}
-  20%{transform:translate(-49%,-51%) skew(-.3deg)}
-  40%{transform:translate(-51%,-50%) skew(.2deg)}
-  60%{transform:translate(-50%,-49%) skew(-.2deg)}
-  80%{transform:translate(-50%,-51%) skew(.3deg)}
-  100%{transform:translate(-50%,-50%) skew(0)}
+body {
+  margin: 0;
+  background: black;
+  font-family: 'Noto Sans JP', sans-serif;
 }
 
-/* ===== ベース ===== */
-body { margin: 0; background: #000; font-family: 'Noto Sans JP', sans-serif; }
-
-/* ===== 背景レイヤ（ヒーロー） ===== */
 #background-container {
   position: relative;
-  width: 100vw; height: 100vh;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
 }
+
 #oracleimage, #oracleritual {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
+  position: absolute;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  top: 0;
+  left: 0;
   z-index: 1;
   cursor: pointer;
-  will-change: opacity, transform;
 }
-#oracleritual { display: none; z-index: 2; }
+
+#oracleritual {
+  display: none;
+  z-index: 2;
+}
 
 #subtitle {
-  position: absolute; bottom: 10%; left: 0; right: 0;
+  position: absolute;
+  bottom: 10%;
+  width: 100%;
   text-align: center;
-  font-size: 1.5rem; color: #fff;
+  font-size: 1.5rem;
+  color: white;
   z-index: 3;
-  opacity: 0; transition: opacity 1s ease;
+  opacity: 0;
 }
 
-/* ===== 背景の“演出カード”は使わない（非表示） ===== */
-#card-zone { display: none !important; }
-
-/* ===== Oracle UI（アプリ本体） ===== */
-#oracle-ui { position: relative; z-index: 10; }
-
-/* UI内カードは常に可視（他CSSからの干渉を遮断） */
-#oracle-ui .card {
-  width: auto !important;
-  height: auto !important;
-  opacity: 1 !important;
-  transform: none !important;
-  background: var(--panel);
+#card-zone {
+  position: absolute;
+  bottom: 5%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  z-index: 4;
 }
 
-/* ===== モーション削減配慮 ===== */
-@media (prefers-reduced-motion: reduce) {
-  #whisper, .dark-whisper { animation: none !important; }
-  #veil, #subtitle { transition: none !important; }
+.card {
+  width: 120px;
+  height: 180px;
+  background: radial-gradient(#8e44ad, #2c3e50);
+  border-radius: 10px;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 1s ease;
 }
