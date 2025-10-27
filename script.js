@@ -1,178 +1,107 @@
-// ===== Oracle: staging & safety enhanced =====
+let stage = 0; // 0=初期, 1=現在カード表示後, 2=完了
 
-// 30%で Dark Oracle。ただしセッション内は固定（リロードでブレない）
-const CORRUPT_KEY = 'oracle.isCorrupted';
-let isCorrupted = sessionStorage.getItem(CORRUPT_KEY);
-if (isCorrupted === null) {
-  isCorrupted = Math.random() < 0.3 ? '1' : '0';
-  sessionStorage.setItem(CORRUPT_KEY, isCorrupted);
+const image = document.getElementById('oracleimage');
+const video = document.getElementById('oracleritual');
+const subtitle = document.getElementById('subtitle');
+const lowerScene = document.getElementById('lower-scene'); // カード背景ブロック
+
+// ===== ガイド文の生成 =====
+const guide = document.createElement('div');
+guide.id = "guide-text";
+guide.textContent = "";
+guide.style.cssText = `
+  position:absolute; bottom:8%; left:50%; transform:translateX(-50%);
+  color:#fff; font-size:1.2rem; text-shadow:0 0 10px #000;
+  opacity:0; transition:opacity 1.5s ease; z-index:10;
+`;
+document.body.appendChild(guide);
+
+function showGuide(text) {
+  guide.textContent = text;
+  guide.style.opacity = 1;
 }
-isCorrupted = isCorrupted === '1';
-
-// ささやき文面
-const whispers = isCorrupted
-  ? ["──お前の声など、もう届かない。","──誰もお前を選ばない。","──この世界に、意味はなかった。"]
-  : ["── どうして、まだ眠っているの？","── 君の記憶に、私の影は残っていないの？","── 見つけて。私は、君の中にいる。"];
-
-// ユーティリティ
-const $id = (id) => document.getElementById(id);
-const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
-
-// 要素取得（存在チェックは各所で）
-const veil      = $id('veil');
-const whisperEl = $id('whisper');
-const whisperAudio = $id('whisperSound');
-const noise = $id('noiseLoop');
-const image = $id('oracleimage');
-const video = $id('oracleritual');
-const subtitle = $id('subtitle');
-const cards = [$id('card1'), $id('card2'), $id('card3')];
-
-let whisperIndex = 0;
-let whisperTimers = [];
-
-// ===== オーディオ系 =====
-function safePlay(audioEl) {
-  if (!audioEl) return Promise.resolve();
-  try {
-    const p = audioEl.play();
-    if (p && typeof p.catch === 'function') {
-      return p.catch(() => Promise.reject());
-    }
-    return Promise.resolve();
-  } catch { return Promise.reject(); }
+function hideGuide() {
+  guide.style.opacity = 0;
 }
 
-function playWhisperSound() {
-  if (!whisperAudio) return;
-  try {
-    whisperAudio.currentTime = 0;
-    safePlay(whisperAudio).catch(() => {/* ブロックされたら黙る */});
-  } catch {}
+// ===== 仮デッキデータ =====
+const DECK = {
+  archetypes: Array.from({length:12}, (_,i)=>({
+    id:`A${i+1}`, name:`Archetype ${i+1}`, image:`assets/archetype_${i+1}.png`
+  })),
+  past: Array.from({length:9}, (_,i)=>({
+    id:`P${i+1}`, name:`Past ${i+1}`, image:`assets/past_${i+1}.png`
+  })),
+  future: Array.from({length:9}, (_,i)=>({
+    id:`F${i+1}`, name:`Future ${i+1}`, image:`assets/future_${i+1}.png`
+  }))
+};
+
+function drawRandom(deck) {
+  return deck[Math.floor(Math.random() * deck.length)];
 }
 
-// ノイズは音量控えめ、失敗したら初回ユーザー操作で再試行
-function initNoise() {
-  if (!noise) return;
-  noise.volume = 0.1;
-  safePlay(noise).catch(() => {
-    const resume = () => {
-      safePlay(noise).finally(() => {
-        document.removeEventListener('click', resume, { capture: true });
-      });
-    };
-    document.addEventListener('click', resume, { capture: true, once: true });
-  });
+function renderCard(slotId, cardData, delay = 0) {
+  const slot = document.getElementById(slotId);
+  slot.style.width = "160px";
+  slot.style.height = "260px";
+  slot.style.backgroundImage = `url(${cardData.image})`;
+  slot.style.backgroundSize = "cover";
+  slot.style.backgroundPosition = "center";
+  slot.style.borderRadius = "12px";
+  slot.style.opacity = "0";
+  slot.style.transition = "opacity 1.5s ease";
+  slot.style.boxShadow = "0 0 25px rgba(0,0,0,0.4)";
 
-  // タブ非表示時の配慮：ミュート/復帰
-  document.addEventListener('visibilitychange', () => {
-    if (!noise) return;
-    noise.muted = document.hidden;
-  });
+  setTimeout(() => { slot.style.opacity = "1"; }, delay);
 }
 
-// ===== ささやき演出 =====
-function clearWhisperTimers() {
-  whisperTimers.forEach(t => clearTimeout(t));
-  whisperTimers = [];
-}
+// ===== クリック1回目：動画再生＋現在カード表示 =====
+image.addEventListener('click', () => {
+  if(stage !== 0) return;
+  stage = 0.5;
 
-function hideVeilAndWhisper() {
-  if (veil) {
-    veil.style.opacity = 0;
-    // クリック透過（CSSのpointer-events:noneと連動）
-    veil.setAttribute('aria-hidden', 'true');
-
-    const cleanup = () => {
-      try { veil.remove(); } catch {}
-      try { whisperEl?.remove(); } catch {}
-    };
-
-    // transitionend か、保険のタイムアウトで片付け
-    const onEnd = (e) => {
-      if (e.target !== veil || e.propertyName !== 'opacity') return;
-      veil.removeEventListener('transitionend', onEnd);
-      cleanup();
-    };
-    veil.addEventListener('transitionend', onEnd);
-    whisperTimers.push(setTimeout(cleanup, 3200));
-  } else {
-    whisperEl?.remove();
-  }
-}
-
-function showNextWhisper() {
-  if (!whisperEl) { hideVeilAndWhisper(); return; }
-
-  // 終了条件
-  if (whisperIndex >= whispers.length) {
-    hideVeilAndWhisper();
-    return;
-  }
-
-  // Dark/Light モードのクラス切替
-  if (isCorrupted) {
-    whisperEl.classList.add('dark-whisper');
-    whisperEl.classList.remove('flicker-whisper');
-  } else {
-    whisperEl.classList.add('flicker-whisper');
-    whisperEl.classList.remove('dark-whisper');
-  }
-
-  whisperEl.textContent = whispers[whisperIndex++];
-  whisperEl.style.display = 'block';
-  // 透明からフェードイン
-  whisperEl.style.opacity = '1';
-  playWhisperSound();
-
-  // 時間設計（reduce時は短縮）
-  const visibleMs = prefersReduced ? 1200 : 3000;
-  const gapMs = prefersReduced ? 400 : 2000;
-
-  whisperTimers.push(setTimeout(() => {
-    whisperEl.style.opacity = '0';
-    whisperTimers.push(setTimeout(showNextWhisper, gapMs));
-  }, visibleMs));
-}
-
-// ===== クリックで背景を起動 =====
-function startBackgroundSequence() {
-  if (!image || !video) return;
-
-  // 画像→動画
   image.style.display = 'none';
   video.style.display = 'block';
-  try { video.muted = true; } catch {}
-  safePlay(video).catch(() => { /* 自動再生失敗は無音でOK */ });
+  video.currentTime = 0;
+  video.play();
 
-  // サブタイトル出現
-  const showSubtitle = () => { if (subtitle) subtitle.style.opacity = '1'; };
-  const revealCards = () => {
-    const list = cards.filter(Boolean);
-    list.forEach((card, idx) => {
-      const delay = idx * (prefersReduced ? 150 : 800);
-      setTimeout(() => {
-        card.style.opacity = '1';
-        card.style.transform = 'translateY(0)';
-      }, delay);
-    });
+  // 字幕フェードイン
+  setTimeout(() => {
+    subtitle.style.transition = 'opacity 2s ease';
+    subtitle.style.opacity = 1;
+  }, 2000);
+
+  // 動画終了後：スクロールせず、その場で現在カード表示
+  video.onended = () => {
+    subtitle.style.opacity = 0;
+
+    // 現在カード表示
+    const current = drawRandom(DECK.archetypes);
+    renderCard('card-current', current);
+    stage = 1;
+
+    // 誘導メッセージ表示
+    setTimeout(() => {
+      showGuide("── 次のカードを引く準備ができたら、クリックしてください。");
+    }, 1200);
   };
+});
 
-  setTimeout(showSubtitle, prefersReduced ? 400 : 2000);
-  setTimeout(revealCards, prefersReduced ? 800 : 3500);
-}
+// ===== クリック2回目：過去・未来カード表示＋下層スクロール =====
+document.addEventListener('click', () => {
+  if (stage === 1) {
+    hideGuide();
+    const past = drawRandom(DECK.past);
+    const future = drawRandom(DECK.future);
 
-// ===== 起動 =====
-window.addEventListener('load', () => {
-  // 囁きスタート
-  showNextWhisper();
-  initNoise();
+    renderCard('card-past', past);
+    renderCard('card-future', future);
+    stage = 2;
 
-  // 背景起動（画像クリックで一度だけ）
-  if (image) {
-    image.addEventListener('click', startBackgroundSequence, { once: true });
+    // カードが出揃った後に下層へ自動スクロール
+    setTimeout(() => {
+      lowerScene.scrollIntoView({ behavior: 'smooth' });
+    }, 2500);
   }
-
-  // ページ離脱時にタイマー掃除（SPAで再入を想定）
-  window.addEventListener('beforeunload', clearWhisperTimers, { once: true });
 });
