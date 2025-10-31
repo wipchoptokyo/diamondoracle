@@ -97,56 +97,6 @@
       transition: opacity 1.5s ease;
       z-index: 10;
     }
-
-　/* === Whisper演出用 === */
-  #veil {
-    position: fixed;
-    inset: 0;
-    background: black;
-    opacity: 1;
-    transition: opacity 3s ease;
-    z-index: 9999;
-  }
-
-  #whisper {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-family: 'Noto Serif JP', serif;
-    font-size: 20px;
-    color: #e0e0e0;
-    opacity: 0;
-    transition: opacity 2s ease;
-    text-align: center;
-    line-height: 1.6;
-    z-index: 10000;
-    white-space: pre-line;
-    pointer-events: none;
-  }
-
-  .normal-whisper {
-    color: #e0e0e0;
-    text-shadow: 0 0 4px #888;
-    animation: whisper-flicker 3s ease-in-out infinite;
-  }
-
-  .rare-whisper {
-    color: #bfe9ff;
-    text-shadow: 0 0 8px #6fd5ff, 0 0 16px #9cf5ff;
-    letter-spacing: 0.5px;
-    animation: rare-pulse 4s ease-in-out infinite;
-  }
-
-  @keyframes whisper-flicker {
-    0%, 100% { opacity: 0.8; filter: blur(0.5px); }
-    50% { opacity: 1; filter: blur(1px); }
-  }
-
-  @keyframes rare-pulse {
-    0%, 100% { opacity: 0.9; filter: blur(0.5px); }
-    50% { opacity: 1; filter: blur(1.2px); }
-  }
   </style>
 </head>
 <body>
@@ -267,4 +217,5 @@
   </script>
 </body>
 </html>
+
 
