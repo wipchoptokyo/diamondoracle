@@ -1,169 +1,114 @@
-/* ==============================
-   基本設定
-============================== */
 body {
   margin: 0;
-  background: #000;
-  color: #fff;
+  background: black;
+  color: white;
   font-family: 'Noto Sans JP', sans-serif;
   overflow-x: hidden;
 }
 
-/* ===== 共通アニメーション ===== */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* 黒背景＋whisper */
+#veil {
+  position: fixed;
+  inset: 0;
+  background: black;
+  opacity: 1;
+  transition: opacity 3s ease;
+  z-index: 9999;
+}
+#whisper {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  color: #ccc;
+  opacity: 0;
+  transition: opacity 2s ease;
+  z-index: 10000;
+  text-align: center;
+  max-width: 80%;
+  white-space: pre-line;
+  pointer-events: none;
+}
+.normal-whisper {
+  animation: whisper-flicker 3s ease-in-out infinite;
+}
+.rare-whisper {
+  color: #ffefb8;
+  text-shadow: 0 0 8px #ffefb8, 0 0 20px #b8974e;
+}
+@keyframes whisper-flicker {
+  0%,100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1);}
+  50% { opacity: 1; transform: translate(-50%, -52%) scale(1.02);}
 }
 
-/* ==============================
-   上層シーン（oracleimage → oracleritual）
-============================== */
-#upper-scene {
+/* 上層背景 */
+#background-container {
   position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: #000;
 }
-
-#oracleimage,
-#oracleritual {
+#oracleimage, #oracleritual {
   position: absolute;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   cursor: pointer;
-  transition: opacity 1s ease;
 }
-
-#oracleritual {
-  display: none;
-  z-index: 1;
-}
-
+#oracleritual { display: none; z-index: 2; }
 #subtitle {
   position: absolute;
-  bottom: 15%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #fff;
-  font-size: 1.4rem;
-  text-shadow: 0 0 10px #000;
+  bottom: 10%;
+  width: 100%;
+  text-align: center;
+  font-size: 1.6rem;
+  color: white;
   opacity: 0;
   transition: opacity 2s ease;
-  z-index: 2;
+  z-index: 3;
+  text-shadow: 0 0 10px rgba(0,0,0,0.6);
 }
 
-/* ==============================
-   下層シーン（カード展開ゾーン）
-============================== */
+/* 下層背景 */
 #lower-scene {
   position: relative;
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
-  background: #000;
-}
-
-#card-background {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  top: 0;
-  left: 0;
-  z-index: 0;
-}
-
-/* カードゾーン全体 */
-#card-zone {
-  position: absolute;
-  inset: 0;
+  background: url('card-background.webp') center/cover no-repeat;
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 60px;
-  z-index: 2;
-  opacity: 0;
-  transition: opacity 2s ease;
+  justify-content: center;
 }
-
-/* 各カードスロット */
-.card-slot {
+#card-zone {
+  display: flex;
+  gap: 40px;
+  z-index: 5;
+}
+.card {
   width: 160px;
   height: 260px;
-  background: radial-gradient(circle at top, #444 0%, #111 100%);
   border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  background: rgba(255,255,255,0.08);
   opacity: 0;
   transform: translateY(40px);
   transition: all 1.5s ease;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 0 25px rgba(0,0,0,0.4);
 }
 
-/* カードフェードイン */
-.card-slot.active {
-  opacity: 1;
-  transform: translateY(0);
+/* ガイド文 */
+#guide-text {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 1.2rem;
+  text-shadow: 0 0 10px #000;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+  z-index: 10;
 }
-
-/* ==============================
-   スクロールスムーズ化
-============================== */
-html {
-  scroll-behavior: smooth;
-}
-
-<style>
-  /* === Whisper演出用 === */
-  #veil {
-    position: fixed;
-    inset: 0;
-    background: black;
-    opacity: 1;
-    transition: opacity 3s ease;
-    z-index: 9999;
-  }
-
-  #whisper {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-family: 'Noto Serif JP', serif;
-    font-size: 20px;
-    color: #e0e0e0;
-    opacity: 0;
-    transition: opacity 2s ease;
-    text-align: center;
-    line-height: 1.6;
-    z-index: 10000;
-    white-space: pre-line;
-    pointer-events: none;
-  }
-
-  .normal-whisper {
-    color: #e0e0e0;
-    text-shadow: 0 0 4px #888;
-    animation: whisper-flicker 3s ease-in-out infinite;
-  }
-
-  .rare-whisper {
-    color: #bfe9ff;
-    text-shadow: 0 0 8px #6fd5ff, 0 0 16px #9cf5ff;
-    letter-spacing: 0.5px;
-    animation: rare-pulse 4s ease-in-out infinite;
-  }
-
-  @keyframes whisper-flicker {
-    0%, 100% { opacity: 0.8; filter: blur(0.5px); }
-    50% { opacity: 1; filter: blur(1px); }
-  }
-
-  @keyframes rare-pulse {
-    0%, 100% { opacity: 0.9; filter: blur(0.5px); }
-    50% { opacity: 1; filter: blur(1.2px); }
-  }
-</style>
-
