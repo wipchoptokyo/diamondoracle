@@ -1,94 +1,87 @@
-// ==== Whisper演出スクリプト（音声なし・30%レアセリフ仕様） ====
-
-// --- セリフデータ ---
-
-// 通常セリフ（通常観測）
-const normalWhispers = [
-  "── 手を離すと、水面に揺らめきながら浮かび上がった。",
-  "── 波が鎮まれば、描かれていたものが読めた。",
-  "── 手を伸ばしたら、たしかにそれは私の手の中にあった。"
+// ===== whisper演出 =====
+const whispers = [
+  "手を離すと、水面に揺らめきながら浮かび上がった。",
+  "波が鎮まれば、描かれていたものが読めた。",
+  "手を伸ばしたら、たしかにそれは私の手の中にあった。"
 ];
-
-// レアセリフ（構造の反転）
 const rareWhispers = [
-  "── 水面の下で、あの手が私を離していた。",
-  "── 波がひとりでに鎮まり、私の輪郭を描き始めた。",
-  "── 光の中で、手も私も、区別がつかなくなっていた。"
+  "光が集まり、記憶の奥で形を成す。",
+  "すべては、始まりのまま続いている。"
 ];
-
-// --- 30%の確率でレアを選択 ---
+const veil = document.getElementById("veil");
+const whisper = document.getElementById("whisper");
 const isRare = Math.random() < 0.3;
-const whispers = isRare ? rareWhispers : normalWhispers;
-
-// --- 再生制御変数 ---
-let whisperIndex = 0;
-
-// --- フェードイン・アウト付きでテキスト表示 ---
+const whisperSet = isRare ? rareWhispers : whispers;
+whisper.className = isRare ? "rare-whisper" : "normal-whisper";
+let index = 0;
 function showNextWhisper() {
-  if (whisperIndex >= whispers.length) {
-    // フェードアウトして削除
-    document.getElementById("veil").style.opacity = 0;
-    setTimeout(() => {
-      document.getElementById("veil").remove();
-      document.getElementById("whisper").remove();
-    }, 3000);
+  if (index >= whisperSet.length) {
+    veil.style.opacity = 0;
+    whisper.style.opacity = 0;
+    setTimeout(() => { veil.remove(); whisper.remove(); }, 3000);
     return;
   }
-
-  const whisper = document.getElementById("whisper");
-
-  // クラス変更（レアか通常かで色味を変える）
-  if (isRare) {
-    whisper.classList.add("rare-whisper");
-    whisper.classList.remove("normal-whisper");
-  } else {
-    whisper.classList.add("normal-whisper");
-    whisper.classList.remove("rare-whisper");
-  }
-
-  // テキスト設定とフェード
-  whisper.textContent = whispers[whisperIndex++];
+  whisper.textContent = whisperSet[index++];
   whisper.style.opacity = 1;
-  whisper.style.display = "block";
-
   setTimeout(() => {
     whisper.style.opacity = 0;
-    setTimeout(showNextWhisper, 2000); // 次の囁きまでの間
-  }, 3000); // 表示時間
+    setTimeout(showNextWhisper, 1500);
+  }, 3000);
+}
+window.addEventListener("load", showNextWhisper);
+
+// ===== 儀式クリック制御 =====
+let stage = 0;
+const image = document.getElementById("oracleimage");
+const video = document.getElementById("oracleritual");
+const subtitle = document.getElementById("subtitle");
+const lowerScene = document.getElementById("lower-scene");
+
+const guide = document.createElement("div");
+guide.id = "guide-text";
+document.body.appendChild(guide);
+function showGuide(text){ guide.textContent = text; guide.style.opacity = 1; }
+function hideGuide(){ guide.style.opacity = 0; }
+
+const DECK = {
+  archetypes: Array.from({length:12},(_,i)=>({id:`A${i+1}`,image:`assets/archetype_${i+1}.png`})),
+  past: Array.from({length:9},(_,i)=>({id:`P${i+1}`,image:`assets/past_${i+1}.png`})),
+  future: Array.from({length:9},(_,i)=>({id:`F${i+1}`,image:`assets/future_${i+1}.png`}))
+};
+function drawRandom(deck){return deck[Math.floor(Math.random()*deck.length)];}
+function renderCard(id,data,delay=0){
+  const el=document.getElementById(id);
+  el.style.backgroundImage=`url(${data.image})`;
+  setTimeout(()=>{el.style.opacity="1";el.style.transform="translateY(0)";},delay);
 }
 
-// --- ページロード時に開始 ---
-window.onload = function () {
-  showNextWhisper();
+// 一回目クリック
+image.addEventListener("click",()=>{
+  if(stage!==0)return;
+  stage=0.5;
+  image.style.display="none";
+  video.style.display="block";
+  video.currentTime=0;
+  video.play();
+  setTimeout(()=>{subtitle.style.opacity=1;},2000);
+  video.onended=()=>{
+    subtitle.style.opacity=0;
+    const current=drawRandom(DECK.archetypes);
+    renderCard("card-current",current);
+    stage=1;
+    setTimeout(()=>{showGuide("── 次のカードを引く準備ができたら、クリックしてください。");},1200);
+  };
+});
 
-  // 背景関連要素
-  const image = document.getElementById("oracleimage");
-  const video = document.getElementById("oracleritual");
-  const subtitle = document.getElementById("subtitle");
-  const cards = [
-    document.getElementById("card1"),
-    document.getElementById("card2"),
-    document.getElementById("card3")
-  ];
-
-  // 背景クリックイベント
-  image.addEventListener("click", () => {
-    image.style.display = "none";
-    video.style.display = "block";
-    video.play();
-
-    setTimeout(() => {
-      subtitle.style.opacity = 1;
-    }, 2000);
-
-    // カードが順に浮かび上がる
-    setTimeout(() => {
-      cards.forEach((card, index) => {
-        setTimeout(() => {
-          card.style.opacity = 1;
-          card.style.transform = "translateY(0)";
-        }, index * 800);
-      });
-    }, 3500);
-  });
-};
+// 二回目クリック
+document.addEventListener("click",()=>{
+  if(stage===1){
+    hideGuide();
+    const past=drawRandom(DECK.past);
+    const future=drawRandom(DECK.future);
+    renderCard("card-past",past);
+    renderCard("card-future",future);
+    stage=2;
+    setTimeout(()=>{lowerScene.scrollIntoView({behavior:"smooth"});},2500);
+  }
+});
