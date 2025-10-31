@@ -73,15 +73,37 @@ image.addEventListener("click",()=>{
   };
 });
 
-// 二回目クリック
-document.addEventListener("click",()=>{
-  if(stage===1){
+// 二回目クリック：動画をもう一度再生し、終了後に過去・未来カードを出す
+document.addEventListener("click", () => {
+  if (stage === 1) {
     hideGuide();
-    const past=drawRandom(DECK.past);
-    const future=drawRandom(DECK.future);
-    renderCard("card-past",past);
-    renderCard("card-future",future);
-    stage=2;
-    setTimeout(()=>{lowerScene.scrollIntoView({behavior:"smooth"});},2500);
+    stage = 1.5; // 中間ステージにして二重実行を防ぐ
+
+    // 上層動画を再表示＆再生
+    video.style.display = "block";
+    video.currentTime = 0;
+    video.play().catch(()=>{}); // モバイル対策
+
+    // 字幕を少しだけ再表示（不要ならこの2行は削除可）
+    subtitle.style.transition = "opacity 0.8s ease";
+    subtitle.style.opacity = 1;
+
+    // この再生サイクルが終わったらカード表示へ
+    video.onended = () => {
+      subtitle.style.opacity = 0;
+
+      const past = drawRandom(DECK.past);
+      const future = drawRandom(DECK.future);
+
+      renderCard("card-past", past, 0);
+      renderCard("card-future", future, 0);
+
+      stage = 2;
+
+      // 少し間を置いてカード背景へスムーズスクロール
+      setTimeout(() => {
+        lowerScene.scrollIntoView({ behavior: "smooth" });
+      }, 2500);
+    };
   }
 });
