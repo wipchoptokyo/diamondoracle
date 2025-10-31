@@ -1,114 +1,24 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Oracle Archetypes 統合版</title>
-  <style>
-    body {
-      margin: 0;
-      background: black;
-      color: white;
-      font-family: 'Noto Sans JP', sans-serif;
-      overflow-x: hidden;
-    }
-
-    /* ===== 上層（静止画＋動画＋字幕） ===== */
-    #background-container {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    #oracleimage,
-    #oracleritual {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      top: 0;
-      left: 0;
-      cursor: pointer;
-    }
-
-    #oracleritual {
-      display: none; /* 最初は非表示、クリックで再生 */
-      z-index: 2;
-    }
-
-    #subtitle {
-      position: absolute;
-      bottom: 10%;
-      width: 100%;
-      text-align: center;
-      font-size: 1.6rem;
-      letter-spacing: 1px;
-      color: #fff;
-      opacity: 0;
-      transition: opacity 2s ease;
-      z-index: 3;
-      text-shadow: 0 0 10px rgba(0,0,0,0.6);
-    }
-
-    /* ===== 下層（カード背景） ===== */
-    #lower-scene {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      background: url('card-background.webp') center/cover no-repeat;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #card-zone {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 40px;
-      position: relative;
-      z-index: 5;
-    }
-
-    .card {
-      width: 160px;
-      height: 260px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.08);
-      opacity: 0;
-      transform: translateY(40px);
-      transition: all 1.5s ease;
-      background-size: cover;
-      background-position: center;
-      box-shadow: 0 0 25px rgba(0,0,0,0.4);
-    }
-
-    /* JSで生成される誘導メッセージ */
-    #guide-text {
-      position: absolute;
-      bottom: 8%;
-      left: 50%;
-      transform: translateX(-50%);
-      color: #fff;
-      font-size: 1.2rem;
-      text-shadow: 0 0 10px #000;
-      opacity: 0;
-      transition: opacity 1.5s ease;
-      z-index: 10;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- 黒背景とセリフ表示 -->
+  <div id="veil"></div>
+  <div id="whisper"></div>
 
-  <!-- ===== 上層：儀式背景 ===== -->
+  <!-- 上層：儀式背景 -->
   <div id="background-container">
-    <img id="oracleimage" src="oracleimage.webp" alt="oracleimage" />
+    <img id="oracleimage" src="oracleimage.webp" alt="oracleimage">
     <video id="oracleritual" src="oracleritual.mp4" playsinline muted></video>
     <div id="subtitle">── あなたの未来に触れる。</div>
   </div>
 
-  <!-- ===== 下層：カード背景エリア ===== -->
+  <!-- 下層：カード背景 -->
   <div id="lower-scene">
     <div id="card-zone">
       <div class="card" id="card-past"></div>
@@ -117,105 +27,6 @@
     </div>
   </div>
 
-  <!-- ===== 演出スクリプト（クリック二段階制御） ===== -->
-  <script>
-    let stage = 0; // 0=初期, 1=現在カード表示後, 2=完了
-
-    const image = document.getElementById('oracleimage');
-    const video = document.getElementById('oracleritual');
-    const subtitle = document.getElementById('subtitle');
-    const lowerScene = document.getElementById('lower-scene');
-
-    // ===== ガイド文を生成 =====
-    const guide = document.createElement('div');
-    guide.id = "guide-text";
-    document.body.appendChild(guide);
-
-    function showGuide(text) {
-      guide.textContent = text;
-      guide.style.opacity = 1;
-    }
-    function hideGuide() {
-      guide.style.opacity = 0;
-    }
-
-    // ===== 仮デッキ（12 / 9 / 9構成） =====
-    const DECK = {
-      archetypes: Array.from({length:12}, (_,i)=>({
-        id:`A${i+1}`, name:`Archetype ${i+1}`, image:`assets/archetype_${i+1}.png`
-      })),
-      past: Array.from({length:9}, (_,i)=>({
-        id:`P${i+1}`, name:`Past ${i+1}`, image:`assets/past_${i+1}.png`
-      })),
-      future: Array.from({length:9}, (_,i)=>({
-        id:`F${i+1}`, name:`Future ${i+1}`, image:`assets/future_${i+1}.png`
-      }))
-    };
-
-    function drawRandom(deck) {
-      return deck[Math.floor(Math.random() * deck.length)];
-    }
-
-    function renderCard(slotId, cardData, delay = 0) {
-      const slot = document.getElementById(slotId);
-      slot.style.backgroundImage = `url(${cardData.image})`;
-      setTimeout(() => {
-        slot.style.opacity = "1";
-        slot.style.transform = "translateY(0)";
-      }, delay);
-    }
-
-    // ===== クリック1回目：動画再生＋現在カード表示 =====
-    image.addEventListener('click', () => {
-      if(stage !== 0) return;
-      stage = 0.5;
-
-      image.style.display = 'none';
-      video.style.display = 'block';
-      video.currentTime = 0;
-      video.play();
-
-      // 字幕フェードイン
-      setTimeout(() => {
-        subtitle.style.transition = 'opacity 2s ease';
-        subtitle.style.opacity = 1;
-      }, 2000);
-
-      // 動画終了後：スクロールせず、その場で現在カード表示
-      video.onended = () => {
-        subtitle.style.opacity = 0;
-
-        // 現在カード表示
-        const current = drawRandom(DECK.archetypes);
-        renderCard('card-current', current);
-        stage = 1;
-
-        // 誘導メッセージ表示
-        setTimeout(() => {
-          showGuide("── 次のカードを引く準備ができたら、クリックしてください。");
-        }, 1200);
-      };
-    });
-
-    // ===== クリック2回目：過去・未来カード表示＋下層スクロール =====
-    document.addEventListener('click', () => {
-      if (stage === 1) {
-        hideGuide();
-        const past = drawRandom(DECK.past);
-        const future = drawRandom(DECK.future);
-
-        renderCard('card-past', past);
-        renderCard('card-future', future);
-        stage = 2;
-
-        // カードが出揃った後に下層へ自動スクロール
-        setTimeout(() => {
-          lowerScene.scrollIntoView({ behavior: 'smooth' });
-        }, 2500);
-      }
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
-
-
